@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+# self-defined
+test
+main
