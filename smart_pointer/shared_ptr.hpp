@@ -29,22 +29,21 @@ namespace Jackie {
 template <class Type>
 class shared_ptr {
 public:
-           shared_ptr() : __ptr(nullptr), __reference_counter(new long(0)) { std::cout << "constructor functiion: 0\n"; }
-  explicit shared_ptr(Type *_ptr) : __ptr(_ptr), __reference_counter(new long(1)) { std::cout << "constructor functiion: 1\n"; }
-           shared_ptr(const shared_ptr<Type>& _sp) : __ptr(_sp.__ptr), __reference_counter(_sp.__reference_counter) { refInc();  std::cout << "constructor functiion: 2\n"; }
-
+  explicit shared_ptr(Type *_ptr = nullptr) : __ptr(_ptr), __reference_counter(new long(0)) { if (_ptr) refInc(); }
+           shared_ptr(const shared_ptr<Type>& _sp) : __ptr(_sp.__ptr), __reference_counter(_sp.__reference_counter) { refInc(); }
+           shared_ptr(std::nullptr_t _null) : __ptr(nullptr), __reference_counter(new long(0)) {}
+  
   ~shared_ptr()
   {
     memory();
-    std::cout << "destructor function\n";
   }
 
 public:
 
   // ============================== API ============================== //
-  Type *get()        { return  __ptr;                  }
-  long  use_count()  { return *__reference_counter;      }
-  bool  unique()     { return *__reference_counter == 1; }
+  Type *get()       const { return  __ptr;                    }
+  long  use_count() const { return *__reference_counter;      }
+  bool  unique()    const { return *__reference_counter == 1; }
 
   void reset(Type *_ptr = nullptr)
   { 
@@ -54,13 +53,17 @@ public:
   }
 
   // ======================= operator overload ======================= //
-  bool operator==(const shared_ptr<Type>& _sp){ return __ptr == _sp.__ptr; }
-  bool operator==(std::nullptr_t _null)       { return __ptr == nullptr;   }
+  bool operator==(const shared_ptr<Type>& _sp) const { return __ptr == _sp.__ptr; }
+  bool operator==(std::nullptr_t _null)        const { return __ptr == nullptr;   }
+  bool operator!=(std::nullptr_t _null)        const { return __ptr != nullptr;   }
+       operator bool()                         const { return __ptr != nullptr;   } // for some special usage scenarios, ie.. assert(ptr)
+
+  Type &operator*()  const { return *__ptr; }
+  Type *operator->() const { return __ptr;  }
 
   shared_ptr<Type>& operator=(const shared_ptr<Type>& _sp)
   {
-    std::cout << "operator= overload 0 is called\n";
-    if (this == &_sp)   
+    if (this == &_sp)
       return *this;
     memory();
     __ptr = _sp.__ptr;
@@ -69,9 +72,11 @@ public:
     return *this;
   }
 
-  Type &operator*(){ assert(__ptr && "invalid operator* for nullptr"); return *__ptr; }
-  
-  Type *operator->(){ return __ptr; }
+  shared_ptr<Type>& operator=(std::nullptr_t _null)
+  {
+    reset(nullptr);
+    return *this;
+  }
 
 private:
   long refDec() const { return --(*__reference_counter); }
@@ -83,8 +88,11 @@ private:
     if (ref_count == 0) {
       delete __ptr;
       delete __reference_counter;
+      __ptr = nullptr;
+      __reference_counter = nullptr;
     } else if (ref_count == -1) {
       delete __reference_counter;
+      __reference_counter = nullptr;
     }
   }
 
@@ -94,10 +102,13 @@ private:
 };
 
 //===----------------------------------------------------------------------===//
-//                        make_shared<Type> function                          //
+//                            make_shared function                            //
 //===----------------------------------------------------------------------===//
-template <typename Type>
-shared_ptr<Type> make_shared(Type *_ptr) { return shared_ptr<Type>(_ptr); } 
+template <class Type, class... Args>
+shared_ptr<Type> make_shared(Args&&... _args) 
+{
+  return shared_ptr<Type>(new Type(std::forward<Args>(_args)...));
+}
 
 
 } // namespace Jackie
