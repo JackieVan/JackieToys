@@ -29,9 +29,19 @@ namespace Jackie {
 template <class Type>
 class shared_ptr {
 public:
-  explicit shared_ptr(Type *_ptr = nullptr) : __ptr(_ptr), __reference_counter(new long(0)) { if (_ptr) refInc(); }
-           shared_ptr(const shared_ptr<Type>& _sp) : __ptr(_sp.__ptr), __reference_counter(_sp.__reference_counter) { refInc(); }
-           shared_ptr(std::nullptr_t _null) : __ptr(nullptr), __reference_counter(new long(0)) {}
+  explicit  shared_ptr(Type *_ptr = nullptr) : __ptr(_ptr), 
+                                               __reference_counter(nullptr)
+            { 
+              if (_ptr)  __reference_counter = new long(1);
+            }
+
+            shared_ptr(const shared_ptr<Type>& _sp) : __ptr(_sp.__ptr), 
+                                                     __reference_counter(_sp.__reference_counter)
+            { 
+              if (__ptr != nullptr)   refInc();
+            }
+
+           shared_ptr(std::nullptr_t _null) : __ptr(nullptr), __reference_counter(nullptr) {}
   
   ~shared_ptr()
   {
@@ -42,14 +52,14 @@ public:
 
   // ============================== API ============================== //
   Type *get()       const { return  __ptr;                    }
-  long  use_count() const { return *__reference_counter;      }
-  bool  unique()    const { return *__reference_counter == 1; }
+  bool  unique()    const { return  __reference_counter && *__reference_counter == 1; }
+  long  use_count() const { return  __reference_counter ?  *__reference_counter :  0; }
 
   void reset(Type *_ptr = nullptr)
   { 
     memory();
     __ptr = _ptr;
-    __reference_counter = __ptr == nullptr ? new long(0) : new long(1);
+    __reference_counter = __ptr == nullptr ? nullptr : new long(1);
   }
 
   // ======================= operator overload ======================= //
@@ -65,10 +75,14 @@ public:
   {
     if (this == &_sp)
       return *this;
-    memory();
-    __ptr = _sp.__ptr;
-    __reference_counter = _sp.__reference_counter;
-    refInc();
+    if (_sp == nullptr) {
+      reset(nullptr);
+    } else {
+      memory();
+      __ptr = _sp.__ptr;
+      __reference_counter = _sp.__reference_counter;
+      refInc();
+    }
     return *this;
   }
 
@@ -79,21 +93,20 @@ public:
   }
 
 private:
-  long refDec() const { return --(*__reference_counter); }
-  long refInc() const { return ++(*__reference_counter); }
+  inline long refDec() const { return __reference_counter ? --(*__reference_counter) : -1; }
+  inline long refInc() const { return ++(*__reference_counter); }
 
-  void memory()
+  void memory() // reference dec and set __ptr and __reference_counter to nullptr
   {
+    if (__reference_counter == nullptr)
+      return;
     long ref_count = refDec();
     if (ref_count == 0) {
       delete __ptr;
       delete __reference_counter;
-      __ptr = nullptr;
-      __reference_counter = nullptr;
-    } else if (ref_count == -1) {
-      delete __reference_counter;
-      __reference_counter = nullptr;
     }
+    __ptr = nullptr;
+    __reference_counter = nullptr;
   }
 
 private:
