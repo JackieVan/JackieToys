@@ -8,31 +8,30 @@
   
   Date        [Oct 4, 2021]
 
-  Vision      [ 0.1 ]
+  Vision      [ 0.1 : basic function, do not include iterator and algorithms ]
 
 =======================================================================*/
 
+#pragma once
 
 // typedef and macro added here..
 //=======================================================//
-#define Vcetor JackieVector
 //=======================================================//
 
 
 //===----------------------------------------------------------------------===//
-//                               JackieVcetor class
+//                                  vector class                              //
 //===----------------------------------------------------------------------===//
-template <class type>
-class JackieVector {
+template <class Type>
+class vector {
 public:
-  // default constructor
-  JackieVector() : __size(0), __capacity(2){ __data = new type[__capacity]; } 
-  ~JackieVector() {
+  vector() : __size(0), __capacity(2){ __data = new Type[__capacity]; } 
+  ~vector() {
     delete []__data;
   }
 
 public:
-  void push_back(const type& _val) {
+  void push_back(const Type& _val) {
     __data[__size++] = _val;
   }
 
@@ -47,9 +46,13 @@ public:
   size_t capacity() const { return __capacity; }
 
 private:
+  void erase_from_end_to(size_t _index)
+  {
+    
+  }
 
 private:
-  size_t __size;
-  size_t __capacity;
-  type  *__data;
+  size_t __size;      // the current data valid end index
+  size_t __capacity;  // the length of __data ptr ownered
+  Type  *__data;
 };
