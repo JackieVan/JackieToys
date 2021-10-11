@@ -45,21 +45,31 @@ public:
   
   ~shared_ptr()
   {
-    memory();
+    put_down();
   }
 
 public:
 
   // ============================== API ============================== //
-  Type *get()       const { return  __ptr;                    }
+  Type *get()       const { return  __ptr;                                            }
   bool  unique()    const { return  __reference_counter && *__reference_counter == 1; }
   long  use_count() const { return  __reference_counter ?  *__reference_counter :  0; }
 
   void reset(Type *_ptr = nullptr)
   { 
-    memory();
+    put_down();
     __ptr = _ptr;
     __reference_counter = __ptr == nullptr ? nullptr : new long(1);
+  }
+
+  void swap(shared_ptr<Type>& _sp) // exchange the ownership of ptr
+  {
+    long *tmp_ref = __reference_counter;
+    Type *tmp_ptr = __ptr;
+    __reference_counter = _sp.__reference_counter;
+    __ptr = _sp.__ptr;
+    _sp.__reference_counter = tmp_ref;
+    _sp.__ptr = tmp_ptr;
   }
 
   // ======================= operator overload ======================= //
@@ -78,7 +88,7 @@ public:
     if (_sp == nullptr) {
       reset(nullptr);
     } else {
-      memory();
+      put_down();
       __ptr = _sp.__ptr;
       __reference_counter = _sp.__reference_counter;
       refInc();
@@ -94,14 +104,13 @@ public:
 
 private:
   inline long refDec() const { return __reference_counter ? --(*__reference_counter) : -1; }
-  inline long refInc() const { return ++(*__reference_counter); }
+  inline long refInc() const { return ++(*__reference_counter);                            }
 
-  void memory() // reference dec and set __ptr and __reference_counter to nullptr
+  void put_down() // reference dec and set __ptr and __reference_counter to nullptr
   {
     if (__reference_counter == nullptr)
       return;
-    long ref_count = refDec();
-    if (ref_count == 0) {
+    if (refDec() == 0) {
       delete __ptr;
       delete __reference_counter;
     }
