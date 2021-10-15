@@ -119,8 +119,8 @@ private:
   }
 
 private:
-  Type *__ptr;                // the ptr this smart pointer shared
-  long *__reference_counter;  // the use reference counter
+  Type *__ptr                = nullptr;  // the ptr this smart pointer shared
+  long *__reference_counter  = nullptr;  // the use reference counter
 };
 
 //===----------------------------------------------------------------------===//

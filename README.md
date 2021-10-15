@@ -1,2 +1,2 @@
 # JackieToys
-Implementaions of some usful C++ tools and features 
+Implementaions of some usful C++ tools and features by JackieVan.
