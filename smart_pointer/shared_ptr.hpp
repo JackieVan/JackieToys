@@ -4,7 +4,7 @@
 
   Synopsis    [A simple C++ header-file implementation of smart pointer: shared_ptr]
 
-  Author      [JackieVan]
+  Author      [Jackie Van]
   
   Date        [Oct 7, 2021]
 
@@ -36,7 +36,7 @@ public:
             }
 
             shared_ptr(const shared_ptr<Type>& _sp) : __ptr(_sp.__ptr), 
-                                                     __reference_counter(_sp.__reference_counter)
+                                                      __reference_counter(_sp.__reference_counter)
             { 
               if (__ptr != nullptr)   refInc();
             }

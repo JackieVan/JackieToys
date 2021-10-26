@@ -4,7 +4,7 @@
 
   Synopsis    [A simple C++ header-file implementation of STL: vector]
 
-  Author      [JackieVan]
+  Author      [Jackie Van]
   
   Date        [Oct 4, 2021]
 
@@ -13,6 +13,8 @@
 =======================================================================*/
 
 #pragma once
+
+#include <memory>
 
 // typedef and macro added here..
 //=======================================================//
@@ -63,7 +65,8 @@ private:
   }
 
 private:
-  size_t __size;      // the first index of unused __date ptr, it also be the real size
+  std::allocator<Type> __alloc;
+  size_t __size;      // the first index of unused __data ptr, it also be the real size
   size_t __capacity;  // the length of __data ptr owned
   Type  *__data;
 };
